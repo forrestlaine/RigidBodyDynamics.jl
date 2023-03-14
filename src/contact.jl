@@ -17,6 +17,7 @@ export SoftContactModel,
 # interface functions
 export num_states,
     location,
+    frictionless_direction,
     contact_model,
     contact_dynamics!,
     reset!,
