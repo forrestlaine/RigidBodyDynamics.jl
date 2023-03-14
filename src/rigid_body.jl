@@ -174,6 +174,9 @@ function add_contact_point!(body::RigidBody{T}, point::DefaultContactPoint{T}) w
     loc = location(point)
     tf = fixed_transform(body, loc.frame, default_frame(body))
     point.location = tf * loc
+    if !isnothing(point.frictionless_direction)
+        point.frictionless_direction = normalize(tf * frictionless_direction(point))
+    end
     push!(body.contact_points, point)
     nothing
 end

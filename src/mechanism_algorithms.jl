@@ -696,6 +696,11 @@ function contact_dynamics!(result::DynamicsResult{T, M}, state::MechanismState{X
             for i = 1 : length(points)
                 @inbounds c = points[i]
                 point = body_to_root * location(c)
+                if isnothing(frictionless_direction(c))
+                    frictionless_direction = nothing
+                else
+                    friectionless_direction = body_to_root * frictionless_direction(c)
+                end
                 velocity = point_velocity(twist, point)
                 states_for_point = states_for_body[i]
                 state_derivs_for_point = state_derivs_for_body[i]
@@ -709,7 +714,7 @@ function contact_dynamics!(result::DynamicsResult{T, M}, state::MechanismState{X
                     if point_inside(primitive, point)
                         separation, normal = Contact.detect_contact(primitive, point)
                         force = Contact.contact_dynamics!(contact_state_deriv, contact_state,
-                            model, -separation, velocity, normal)
+                            model, -separation, velocity, normal, frictionless_direction)
                         wrench += Wrench(point, force)
                     else
                         Contact.reset!(contact_state)

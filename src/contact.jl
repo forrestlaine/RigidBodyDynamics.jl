@@ -96,13 +96,16 @@ zero!(deriv::SoftContactStateDeriv) = (zero!(friction_state_deriv(deriv)); zero!
 ## ContactPoint
 mutable struct ContactPoint{T, M <: SoftContactModel}
     location::Point3D{SVector{3, T}}
+    frictionless_direction::Union{Nothing, FreeVector3D{SVector{3, T}}}
     model::M
 end
 location(point::ContactPoint) = point.location
+frictionless_direction(point::ContactPoint) = point.frictionless_direction
 contact_model(point::ContactPoint) = point.model
 
 function contact_dynamics!(state_deriv::SoftContactStateDeriv, state::SoftContactState,
-        model::SoftContactModel, penetration::Number, velocity::FreeVector3D, normal::FreeVector3D)
+        model::SoftContactModel, penetration::Number, velocity::FreeVector3D, normal::FreeVector3D, 
+        frictionless_direction::Union{Nothing, FreeVector3D})
     @boundscheck penetration >= 0 || error("penetration must be nonnegative")
 
     z = penetration
@@ -111,6 +114,11 @@ function contact_dynamics!(state_deriv::SoftContactStateDeriv, state::SoftContac
     dynamics!(normal_force_state_deriv(state_deriv), normal_force_model(model), normal_force_state(state), fnormal)
 
     tangential_velocity = velocity + ż * normal
+    if !isnothing(frictionless_direction)
+        żfl = -dot(tangential_velocity, frictionless_direction)
+        tangential_velocity = tangential_velocity + żfl * frictionless_direction
+    end
+
     ftangential = friction_force(friction_model(model), friction_state(state), fnormal, tangential_velocity)
     dynamics!(friction_state_deriv(state_deriv), friction_model(model), friction_state(state), ftangential)
 
