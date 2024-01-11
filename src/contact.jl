@@ -118,6 +118,7 @@ function contact_dynamics!(state_deriv::SoftContactStateDeriv, state::SoftContac
     if !isnothing(frictionless_direction)
         żfl = -dot(tangential_velocity, frictionless_direction)
         tangential_velocity = tangential_velocity + żfl * frictionless_direction
+        żfl2 = -dot(tangential_velocity, frictionless_direction)
     end
 
     ftangential = friction_force(friction_model(model), friction_state(state), fnormal, tangential_velocity)
